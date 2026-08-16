@@ -70,11 +70,9 @@ environment:
 init: false
 map:
   - addon_config:rw
-  - homeassistant_config:rw
 name: Free Games Claimer
 options:
   env_vars: []
-  STORES: ""
   RUN_ONCE: true
   CONFIG_LOCATION: /config/config.env
 ports:
@@ -87,7 +85,6 @@ schema:
   env_vars:
     - name: match(^[A-Za-z0-9_]+$)
       value: str?
-  STORES: str?
   RUN_ONCE: bool
   CONFIG_LOCATION: str
 slug: free_games_claimer
