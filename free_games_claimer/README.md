@@ -34,8 +34,9 @@ supports:
 - AliExpress daily check-in
 - GamerPower-supported stores, when explicitly enabled
 
-For compatibility with previous add-on releases, the default store selection
-remains Epic Games, Prime Gaming, and GOG.
+The default configuration keeps the previous add-on selection of Epic Games,
+Prime Gaming, and GOG. Store selection itself is handled directly by Remaster's
+native `STORES` setting in `config.env`.
 
 ## Web interface
 
@@ -54,9 +55,8 @@ VNC session.
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `CONFIG_LOCATION` | `/config/config.env` | Persistent environment configuration file |
+| `CONFIG_LOCATION` | `/config/config.env` | Persistent Remaster environment configuration file |
 | `RUN_ONCE` | `true` | Run all selected claimers once, then stop the add-on |
-| `STORES` | empty | Optional comma-separated override, such as `epic,prime,gog,steam,aliexpress`; when empty, `STORES` from `config.env` is used, otherwise the add-on defaults to `epic,prime,gog` |
 | `env_vars` | `[]` | Additional environment variables exported through the standard AlexBelgium environment module |
 
 ### Run modes
@@ -77,7 +77,7 @@ browser add-on.
 A template is created on first start. Common examples are:
 
 ```env
-# Default selection used by the add-on when no STORES option is set
+# Native Remaster store selection
 STORES=epic,prime,gog
 
 # Epic Games
@@ -113,31 +113,23 @@ See the
 [upstream configuration reference](https://github.com/P-Adamiec/Free-Games-Claimer-Remaster#configuration)
 for all available settings.
 
-## Upgrade from version 1.8
+## Upgrade notes
 
 Version 2.0 changed the application engine from
 `vogler/free-games-claimer` (Node.js, Playwright, and Firefox) to
 `P-Adamiec/Free-Games-Claimer-Remaster` (Python, nodriver, and Chromium).
-The add-on performs the following migration automatically on first start:
 
-1. The existing `config.env` remains at the same configured location.
-2. Legacy `epic-games.json`, `prime-gaming.json`, and `gog.json` claim history
-   is imported into the Remaster SQLite database at `/data/fgc.db`.
-3. Existing database rows are detected and are not duplicated if migration is
-   retried.
-4. A pre-migration database backup is created when an existing `fgc.db` is
-   present.
-5. All old files remain under `/data/data` for rollback or manual recovery.
+Version 2.0.2 keeps the Home Assistant layer intentionally thin and no longer
+ships application-specific converters for the former vogler JSON history or
+Firefox profile. It also no longer migrates configuration from obsolete
+pre-`addon_config` Home Assistant paths.
 
-Browser sessions cannot be converted because the old add-on used a shared
-Firefox profile while Remaster uses separate Chromium profiles per store.
-Accounts that require interactive authentication may need a one-time login
-through noVNC after the upgrade.
+Existing Remaster data under `/data` remains persistent across add-on updates.
+Users upgrading directly from a pre-2.0 release may need to recreate their
+current `config.env` and perform a one-time browser login through noVNC.
 
-The former Node.js `CMD_ARGUMENTS` option is no longer used. Store selection is
-configured directly with Remaster's `STORES` setting, either through the add-on
-option or `config.env`.
-
+The former Node.js `CMD_ARGUMENTS` option is no longer used. Configure store
+selection directly with Remaster's native `STORES` setting in `config.env`.
 The add-on fixes `NOVNC_PORT` to `7080` so Remaster and Home Assistant use the
 same port end-to-end.
 
@@ -159,7 +151,7 @@ dependencies.
 
 1. Add this add-on repository to the Home Assistant add-on store.
 2. Install **Free Games Claimer**.
-3. Configure the add-on options as needed.
+3. Configure `config.env` and the add-on options as needed.
 4. Start the add-on and review its log.
 5. Open noVNC if an account needs manual authentication.
 
