@@ -1,0 +1,6 @@
+{
+  "name": "HA Add-ons Tests",
+  "udev": true,
+  "url": "https://github.com/rektosaure/hassio-addons-tests",
+  "maintainer": "rektosaure"
+}
