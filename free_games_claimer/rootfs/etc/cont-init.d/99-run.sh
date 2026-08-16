@@ -36,11 +36,9 @@ set -a
 source "${RUNTIME_CONFIG}"
 set +a
 
-# Remaster v1.5 uses noVNC on 7080 and Home Assistant exposes the same port.
-# Existing config.env files from add-on 2.0.x may still contain 6080, which is
-# normalized to the upstream port for upgrade compatibility.
-if [ -n "${NOVNC_PORT:-}" ] && [ "${NOVNC_PORT}" != "7080" ] && [ "${NOVNC_PORT}" != "6080" ]; then
-    bashio::log.warning "NOVNC_PORT=${NOVNC_PORT} is not supported by the add-on port mapping; using 7080"
+# Remaster v1.5 and Home Assistant both use noVNC on port 7080.
+if [ -n "${NOVNC_PORT:-}" ] && [ "${NOVNC_PORT}" != "7080" ]; then
+    bashio::log.warning "NOVNC_PORT=${NOVNC_PORT} is not supported by the add-on; using 7080"
 fi
 export NOVNC_PORT="7080"
 export VNC_PORT="5900"
