@@ -70,9 +70,9 @@ scheduler. `SCHEDULER_HOURS`, `SCHEDULER_FIXED_TIMES`,
 ## Environment configuration
 
 The add-on keeps its configuration in `CONFIG_LOCATION`, which defaults to
-`/config/config.env`. From Home Assistant this is stored in the add-on's
-private `addon_configs` directory and can be edited with a compatible file
-browser add-on.
+`/config/config.env`. Home Assistant stores this in the add-on's private
+configuration directory, which can be edited with a compatible file browser
+add-on.
 
 A template is created on first start. Common examples are:
 
@@ -121,8 +121,8 @@ Version 2.0 changed the application engine from
 
 Version 2.0.2 keeps the Home Assistant layer intentionally thin and no longer
 ships application-specific converters for the former vogler JSON history or
-Firefox profile. It also no longer migrates configuration from obsolete
-pre-`addon_config` Home Assistant paths.
+Firefox profile. It also no longer migrates configuration from obsolete Home
+Assistant configuration locations.
 
 Existing Remaster data under `/data` remains persistent across add-on updates.
 Users upgrading directly from a pre-2.0 release may need to recreate their
@@ -130,8 +130,8 @@ current `config.env` and perform a one-time browser login through noVNC.
 
 The former Node.js `CMD_ARGUMENTS` option is no longer used. Configure store
 selection directly with Remaster's native `STORES` setting in `config.env`.
-The add-on fixes `NOVNC_PORT` to `7080` so Remaster and Home Assistant use the
-same port end-to-end.
+The external noVNC port changes from `6080` to `7080` in version 2.0.2 so Home
+Assistant and Remaster use the upstream port end-to-end.
 
 ## Upstream update policy
 
