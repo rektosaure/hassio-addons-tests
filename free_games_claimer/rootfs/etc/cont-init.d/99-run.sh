@@ -24,12 +24,43 @@ fi
 install -m 0600 "${CONFIG_FILE}" "${RUNTIME_CONFIG}"
 sed -i 's/\r$//' "${RUNTIME_CONFIG}"
 
-# Export config.env so Remaster's shell entrypoint sees the same values as its
-# Python configuration loader.
-set -a
-# shellcheck source=/dev/null
-source "${RUNTIME_CONFIG}"
-set +a
+# Keep explicit env_vars as final overrides after loading config.env.
+mapfile -t ENV_VAR_NAMES < <(jq -r '.env_vars[]? | .name // empty' /data/options.json)
+declare -A ENV_VAR_VALUES=()
+for name in "${ENV_VAR_NAMES[@]}"; do
+    if [[ -v "${name}" ]]; then
+        ENV_VAR_VALUES["${name}"]="${!name}"
+    fi
+done
+
+# Parse config.env with Remaster's python-dotenv dependency instead of sourcing
+# user-controlled dotenv content as shell code.
+DOTENV_DATA="$(mktemp)"
+python3 - "${RUNTIME_CONFIG}" > "${DOTENV_DATA}" <<'PY'
+import re
+import sys
+
+from dotenv import dotenv_values
+
+for key, value in dotenv_values(sys.argv[1]).items():
+    if value is None or re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", key) is None:
+        continue
+    sys.stdout.buffer.write(key.encode())
+    sys.stdout.buffer.write(b"\0")
+    sys.stdout.buffer.write(value.encode())
+    sys.stdout.buffer.write(b"\0")
+PY
+
+while IFS= read -r -d '' key && IFS= read -r -d '' value; do
+    export "${key}=${value}"
+done < "${DOTENV_DATA}"
+rm -f "${DOTENV_DATA}"
+
+for name in "${ENV_VAR_NAMES[@]}"; do
+    if [[ -v 'ENV_VAR_VALUES[$name]' ]]; then
+        export "${name}=${ENV_VAR_VALUES[$name]}"
+    fi
+done
 
 # noVNC and VNC are fixed by the add-on port mapping.
 export NOVNC_PORT="7080"

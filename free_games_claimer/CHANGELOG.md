@@ -12,6 +12,8 @@
   Home Assistant.
 - Enable the shared AlexBelgium `00-global_var.sh` module for the existing
   `env_vars` option.
+- Load `config.env` with Remaster's dotenv parser and preserve `env_vars` as
+  final overrides without shell-expanding user values.
 - Remove the deprecated Node.js `CMD_ARGUMENTS` compatibility layer and use
   Remaster's native `STORES` setting directly from `config.env`.
 - Remove obsolete vogler data migration, legacy Home Assistant config-path

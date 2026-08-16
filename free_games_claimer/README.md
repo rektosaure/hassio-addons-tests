@@ -57,7 +57,7 @@ VNC session.
 |--------|---------|-------------|
 | `CONFIG_LOCATION` | `/config/config.env` | Persistent Remaster environment configuration file |
 | `RUN_ONCE` | `true` | Run all selected claimers once, then stop the add-on |
-| `env_vars` | `[]` | Additional environment variables |
+| `env_vars` | `[]` | Additional environment variables; override matching `config.env` values |
 
 ### Run modes
 
