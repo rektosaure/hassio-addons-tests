@@ -57,7 +57,7 @@
 
 - Minor bugs fixed
 
-## 1.6-4 (2024-12-29)
+## 1.6-4 (2024-12-07)
 
 - Major change: switch to the new Home Assistant add-on configuration logic.
   Configuration files were migrated from
