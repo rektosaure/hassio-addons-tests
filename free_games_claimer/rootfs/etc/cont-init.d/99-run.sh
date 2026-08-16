@@ -25,57 +25,28 @@ else
     bashio::log.info "Using configuration from ${CONFIG_FILE}"
 fi
 
-# The remaster reads /fgc/data/config.env. /fgc/data is linked to Home
-# Assistant's persistent /data volume by the Dockerfile.
+# Remaster reads /fgc/data/config.env. /fgc/data is linked to Home Assistant's
+# persistent /data volume by the Dockerfile.
 install -m 0600 "${CONFIG_FILE}" "${RUNTIME_CONFIG}"
 sed -i 's/\r$//' "${RUNTIME_CONFIG}"
 
-# Export values needed by the VNC entrypoint as well as by the Python app.
+# Export config.env so Remaster's shell entrypoint sees the same values as its
+# Python configuration loader.
 set -a
 # shellcheck source=/dev/null
 source "${RUNTIME_CONFIG}"
 set +a
 
-# Remaster v1.5 and Home Assistant both use noVNC on port 7080.
-if [ -n "${NOVNC_PORT:-}" ] && [ "${NOVNC_PORT}" != "7080" ]; then
-    bashio::log.warning "NOVNC_PORT=${NOVNC_PORT} is not supported by the add-on; using 7080"
-fi
+# noVNC and VNC are fixed by the add-on port mapping.
 export NOVNC_PORT="7080"
 export VNC_PORT="5900"
-
-# Absolute paths from the former image pointed to its Firefox profile. The
-# replacement uses Chromium profiles and must start with a separate directory.
-if [ "${BROWSER_DIR:-}" = "/data/data/browser" ]; then
-    bashio::log.warning "Remapping legacy Firefox BROWSER_DIR to the remaster Chromium profile directory"
-    export BROWSER_DIR="data/browser"
-fi
-if [ "${SCREENSHOTS_DIR:-}" = "/data/data/screenshots" ]; then
-    export SCREENSHOTS_DIR="/fgc/data/screenshots"
-fi
-
-# A non-empty STORES add-on option takes priority. Otherwise keep a STORES value
-# from config.env, then fall back to the add-on's historical Epic/Prime/GOG set.
-STORES_OPTION=""
-if bashio::config.has_value 'STORES'; then
-    STORES_OPTION="$(bashio::config 'STORES')"
-fi
-if [ -n "${STORES_OPTION}" ]; then
-    export STORES="${STORES_OPTION}"
-elif [ -z "${STORES:-}" ]; then
-    export STORES="epic,prime,gog"
-fi
-
-bashio::log.info "Enabled stores: ${STORES}"
-
-# Import claim history from vogler/free-games-claimer once. Legacy files and
-# browser data are retained under /data/data for rollback and manual recovery.
-/usr/local/bin/migrate_vogler_data.py
 
 APP_COMMAND=(python3 /fgc/main.py)
 RUN_ONCE="true"
 if bashio::config.has_value 'RUN_ONCE' && ! bashio::config.true 'RUN_ONCE'; then
     RUN_ONCE="false"
 fi
+
 if [ "${RUN_ONCE}" = "true" ]; then
     APP_COMMAND+=(--once)
     bashio::log.info "Starting a single claiming run"
