@@ -41,8 +41,8 @@ RUN curl -fsSL --retry 3 --retry-delay 2 \
     && /ha_automodules.sh "${MODULES}" \
     && rm /ha_automodules.sh
 
-# jq is required by the shared 00-global_var.sh module.
-ENV PACKAGES="jq"
+# Run the standard automatic package and Bashio installer.
+ENV PACKAGES=""
 RUN curl -fsSL --retry 3 --retry-delay 2 \
         -o /ha_autoapps.sh "${TEMPLATE_BASE_URL}/ha_autoapps.sh" \
     && chmod 0755 /ha_autoapps.sh \
