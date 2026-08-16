@@ -8,7 +8,11 @@
 - Enable the shared AlexBelgium `00-global_var.sh` module for the existing
   `env_vars` option.
 - Remove the deprecated Node.js `CMD_ARGUMENTS` compatibility layer and use
-  Remaster's native `STORES` setting directly.
+  Remaster's native `STORES` setting directly from `config.env`.
+- Remove obsolete vogler data migration, legacy Home Assistant config-path
+  migration, and the former `/fgc` to `/data` application copy.
+- Drop the no-longer-needed `homeassistant_config` mapping and keep the add-on
+  wrapper focused on persistence, configuration, and run mode.
 - Re-enable the repository updater with full upstream tags and Home
   Assistant-safe add-on versioning.
 - Update the configuration template and documentation for Remaster v1.5.
