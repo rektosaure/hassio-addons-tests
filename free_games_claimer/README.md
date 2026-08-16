@@ -23,8 +23,8 @@ takes a significant amount of time.
 This add-on is based on
 [Free Games Claimer Remaster](https://github.com/P-Adamiec/Free-Games-Claimer-Remaster).
 
-The add-on uses the official upstream multi-architecture container image and
-adds only the Home Assistant integration layer. Free Games Claimer Remaster
+The add-on is based on the official upstream multi-architecture container image
+and adds only the Home Assistant integration layer. Free Games Claimer Remaster
 supports:
 
 - Epic Games Store, including Epic mobile giveaways
@@ -69,14 +69,16 @@ scheduler. `SCHEDULER_HOURS`, `SCHEDULER_FIXED_TIMES`,
 
 ## Environment configuration
 
-The add-on keeps its configuration in `CONFIG_LOCATION`, which defaults to
-`/config/config.env`. Home Assistant stores this in the add-on's private
-configuration directory, which can be edited with a compatible file browser
-add-on.
+By default, the configuration is stored at `/config/config.env` in the add-on's
+private configuration directory. `CONFIG_LOCATION` can be changed if another
+location is required.
 
 A template is created on first start. Common examples are:
 
 ```env
+# Browser / VNC
+VNC_PASSWORD=change-me
+
 # Native Remaster store selection
 STORES=epic,prime,gog
 
@@ -135,12 +137,12 @@ Assistant and Remaster use the upstream port end-to-end.
 
 ## Upstream updates
 
-The add-on uses the official stable multi-architecture Remaster image instead
-of rebuilding its Python, browser, VNC, and system runtime.
+The add-on is based on the official stable multi-architecture Remaster image
+instead of rebuilding its Python, browser, VNC, and system runtime.
 
-`build.json` uses the stable upstream image and `BUILD_UPSTREAM` records the
-tracked upstream release tag. The updater uses that tag to detect new releases
-and derive the next Home Assistant add-on version.
+`build.json` uses the stable upstream image. `BUILD_UPSTREAM` records the
+upstream release used by the add-on, while `updater.json` tracks new upstream
+releases and the add-on version.
 
 ## Installation
 
