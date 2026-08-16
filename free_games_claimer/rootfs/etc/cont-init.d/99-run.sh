@@ -55,53 +55,8 @@ if [ "${SCREENSHOTS_DIR:-}" = "/data/data/screenshots" ]; then
     export SCREENSHOTS_DIR="/fgc/data/screenshots"
 fi
 
-append_store() {
-    local store="${1}"
-    local current="${2}"
-
-    if [[ ",${current}," == *",${store},"* ]]; then
-        printf '%s' "${current}"
-    elif [ -n "${current}" ]; then
-        printf '%s,%s' "${current}" "${store}"
-    else
-        printf '%s' "${store}"
-    fi
-}
-
-legacy_commands_to_stores() {
-    local commands="${1}"
-    local selected=""
-    local command=""
-    local normalized=""
-    local command_list=()
-
-    IFS=';' read -ra command_list <<< "${commands}"
-    for command in "${command_list[@]}"; do
-        normalized="${command,,}"
-        case "${normalized}" in
-            *epic-games*|*epicgames*|*" epic"*|epic*)
-                selected="$(append_store "epic" "${selected}")"
-                ;;
-            *prime-gaming*|*primegaming*|*" prime"*|prime*|*" amazon"*|amazon*)
-                selected="$(append_store "prime" "${selected}")"
-                ;;
-            *steam-games*|*" steam"*|steam*)
-                selected="$(append_store "steam" "${selected}")"
-                ;;
-            *gamerpower*)
-                selected="$(append_store "gamerpower" "${selected}")"
-                ;;
-            *" gog"*|gog*)
-                selected="$(append_store "gog" "${selected}")"
-                ;;
-        esac
-    done
-
-    printf '%s' "${selected}"
-}
-
-# A non-empty STORES add-on option takes priority. Otherwise retain a STORES
-# value from config.env, then fall back to translating the legacy commands.
+# A non-empty STORES add-on option takes priority. Otherwise keep a STORES value
+# from config.env, then fall back to the add-on's historical Epic/Prime/GOG set.
 STORES_OPTION=""
 if bashio::config.has_value 'STORES'; then
     STORES_OPTION="$(bashio::config 'STORES')"
@@ -109,15 +64,10 @@ fi
 if [ -n "${STORES_OPTION}" ]; then
     export STORES="${STORES_OPTION}"
 elif [ -z "${STORES:-}" ]; then
-    CMD_ARGUMENTS=""
-    if bashio::config.has_value 'CMD_ARGUMENTS'; then
-        CMD_ARGUMENTS="$(bashio::config 'CMD_ARGUMENTS')"
-    fi
-    STORES="$(legacy_commands_to_stores "${CMD_ARGUMENTS}")"
-    export STORES="${STORES:-epic,prime,gog}"
+    export STORES="epic,prime,gog"
 fi
 
-bashio::log.info "Enabled stores: ${STORES:-epic,prime,gog}"
+bashio::log.info "Enabled stores: ${STORES}"
 
 # Import claim history from vogler/free-games-claimer once. Legacy files and
 # browser data are retained under /data/data for rollback and manual recovery.
@@ -130,7 +80,7 @@ if bashio::config.has_value 'RUN_ONCE' && ! bashio::config.true 'RUN_ONCE'; then
 fi
 if [ "${RUN_ONCE}" = "true" ]; then
     APP_COMMAND+=(--once)
-    bashio::log.info "Starting a single claiming run (legacy-compatible mode)"
+    bashio::log.info "Starting a single claiming run"
 
     set +e
     /usr/local/bin/docker-entrypoint.sh "${APP_COMMAND[@]}"
