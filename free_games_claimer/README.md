@@ -57,7 +57,7 @@ VNC session.
 |--------|---------|-------------|
 | `CONFIG_LOCATION` | `/config/config.env` | Persistent Remaster environment configuration file |
 | `RUN_ONCE` | `true` | Run all selected claimers once, then stop the add-on |
-| `env_vars` | `[]` | Additional environment variables exported through the standard AlexBelgium environment module |
+| `env_vars` | `[]` | Additional environment variables |
 
 ### Run modes
 
@@ -133,19 +133,14 @@ selection directly with Remaster's native `STORES` setting in `config.env`.
 The external noVNC port changes from `6080` to `7080` in version 2.0.2 so Home
 Assistant and Remaster use the upstream port end-to-end.
 
-## Upstream update policy
+## Upstream updates
 
-The add-on is based directly on the official versioned Remaster container
-image instead of rebuilding its Python, browser, VNC, and system runtime.
+The add-on uses the official stable multi-architecture Remaster image instead
+of rebuilding its Python, browser, VNC, and system runtime.
 
-The repository updater tracks the full upstream release tag (for example
-`v1.5`) and updates the base image reference. The add-on version remains
-Home Assistant-safe even while the upstream project is still on a lower
-version series.
-
-This keeps future upstream updates focused on the image tag and add-on
-metadata instead of manually synchronizing Remaster's Dockerfile and runtime
-dependencies.
+`build.json` uses the stable upstream image and `BUILD_UPSTREAM` records the
+tracked upstream release tag. The updater uses that tag to detect new releases
+and derive the next Home Assistant add-on version.
 
 ## Installation
 
