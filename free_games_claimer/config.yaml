@@ -80,7 +80,7 @@ options:
   CONFIG_LOCATION: /config/config.env
 ports:
   5900/tcp: null
-  7080/tcp: 6080
+  7080/tcp: 7080
 ports_description:
   5900/tcp: VNC port
   7080/tcp: noVNC web interface
