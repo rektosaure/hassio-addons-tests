@@ -138,9 +138,8 @@ The former Node.js `CMD_ARGUMENTS` option is no longer used. Store selection is
 configured directly with Remaster's `STORES` setting, either through the add-on
 option or `config.env`.
 
-Existing 2.0.x `config.env` files can still contain `NOVNC_PORT=6080`. The
-add-on normalizes that legacy value to Remaster's upstream port `7080` at
-runtime.
+The add-on fixes `NOVNC_PORT` to `7080` so Remaster and Home Assistant use the
+same port end-to-end.
 
 ## Upstream update policy
 
