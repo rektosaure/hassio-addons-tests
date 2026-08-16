@@ -55,15 +55,13 @@ VNC session.
 | Option | Default | Description |
 |--------|---------|-------------|
 | `CONFIG_LOCATION` | `/config/config.env` | Persistent environment configuration file |
-| `RUN_ONCE` | `true` | Run all selected claimers once, then stop the add-on as previous releases did |
-| `STORES` | empty | Optional comma-separated override, such as `epic,prime,gog,steam,aliexpress` |
-| `CMD_ARGUMENTS` | `node epic-games ; node prime-gaming ; node gog` | Deprecated compatibility option; recognized legacy command names are converted to `STORES` |
+| `RUN_ONCE` | `true` | Run all selected claimers once, then stop the add-on |
+| `STORES` | empty | Optional comma-separated override, such as `epic,prime,gog,steam,aliexpress`; when empty, `STORES` from `config.env` is used, otherwise the add-on defaults to `epic,prime,gog` |
 | `env_vars` | `[]` | Additional environment variables exported through the standard AlexBelgium environment module |
 
 ### Run modes
 
-With `RUN_ONCE: true`, the add-on performs one claiming pass and stops. This is
-the default and preserves the behavior of the former vogler-based add-on.
+With `RUN_ONCE: true`, the add-on performs one claiming pass and stops.
 
 With `RUN_ONCE: false`, Remaster remains running and uses its internal
 scheduler. `SCHEDULER_HOURS`, `SCHEDULER_FIXED_TIMES`,
@@ -79,7 +77,7 @@ browser add-on.
 A template is created on first start. Common examples are:
 
 ```env
-# Preserve the former default selection
+# Default selection used by the add-on when no STORES option is set
 STORES=epic,prime,gog
 
 # Epic Games
@@ -135,6 +133,10 @@ Browser sessions cannot be converted because the old add-on used a shared
 Firefox profile while Remaster uses separate Chromium profiles per store.
 Accounts that require interactive authentication may need a one-time login
 through noVNC after the upgrade.
+
+The former Node.js `CMD_ARGUMENTS` option is no longer used. Store selection is
+configured directly with Remaster's `STORES` setting, either through the add-on
+option or `config.env`.
 
 Existing 2.0.x `config.env` files can still contain `NOVNC_PORT=6080`. The
 add-on normalizes that legacy value to Remaster's upstream port `7080` at
