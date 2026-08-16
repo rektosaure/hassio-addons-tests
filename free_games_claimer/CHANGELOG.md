@@ -3,6 +3,11 @@
 - Update Free Games Claimer Remaster to upstream v1.5.
 - Base the add-on on the official upstream amd64/arm64 image instead of
   rebuilding Remaster's Python, Chromium, TurboVNC, and noVNC runtime.
+- Use the helper scripts provided in the build context instead of downloading
+  them from GitHub during the image build.
+- Track the upstream release with `BUILD_UPSTREAM` while `build.json` uses the
+  official stable multi-architecture image.
+- Remove unused S6 environment settings and enable the Tini subreaper.
 - Use Remaster's upstream noVNC port 7080 both inside the container and on
   Home Assistant.
 - Enable the shared AlexBelgium `00-global_var.sh` module for the existing

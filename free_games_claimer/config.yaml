@@ -66,7 +66,7 @@ devices:
   - /dev/nvme1
   - /dev/nvme2
 environment:
-  TINI_SUBREAPER: "false"
+  TINI_SUBREAPER: "true"
 init: false
 map:
   - addon_config:rw
