@@ -28,8 +28,7 @@ RUN rm -rf /fgc/data \
 
 # Add Home Assistant integration files.
 COPY rootfs/ /
-RUN find /etc/cont-init.d /usr/local/bin -type f -name "*.sh" -exec chmod 0755 {} + \
-    && chmod 0755 /usr/local/bin/migrate_vogler_data.py
+RUN find /etc/cont-init.d -type f -name "*.sh" -exec chmod 0755 {} +
 
 # Use the shared AlexBelgium modules. 00-global_var.sh provides the standard
 # env_vars option declared by this add-on.
