@@ -22,63 +22,70 @@ takes a significant amount of time.
 
 This add-on is based on
 [Free Games Claimer Remaster](https://github.com/P-Adamiec/Free-Games-Claimer-Remaster).
-It can claim free games from:
 
-- Epic Games Store
+The add-on uses the official upstream multi-architecture container image and
+adds only the Home Assistant integration layer. Free Games Claimer Remaster
+supports:
+
+- Epic Games Store, including Epic mobile giveaways
 - Amazon Prime Gaming
 - GOG
 - Steam
+- AliExpress daily check-in
 - GamerPower-supported stores, when explicitly enabled
 
-For compatibility with previous add-on releases, the default store selection
-remains Epic Games, Prime Gaming, and GOG.
+The default configuration keeps the previous add-on selection of Epic Games,
+Prime Gaming, and GOG. Store selection itself is handled directly by Remaster's
+native `STORES` setting in `config.env`.
 
 ## Web interface
 
-The noVNC interface remains available on port `6080`:
+The add-on uses Remaster's upstream noVNC port `7080` both inside the container
+and on Home Assistant.
 
 ```text
-http://homeassistant:6080
+http://homeassistant:7080
 ```
 
-It can be used for initial sign-in, CAPTCHA handling, or other manual browser
-interaction. Set `VNC_PASSWORD` in `config.env` to protect the VNC session.
+The interface can be used for initial sign-in, CAPTCHA handling, or other
+manual browser interaction. Set `VNC_PASSWORD` in `config.env` to protect the
+VNC session.
 
 ## Add-on options
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `CONFIG_LOCATION` | `/config/config.env` | Persistent environment configuration file |
-| `RUN_ONCE` | `true` | Run all selected claimers once, then stop the add-on as previous releases did |
-| `STORES` | empty | Optional comma-separated override, such as `epic,prime,gog,steam` |
-| `CMD_ARGUMENTS` | `node epic-games ; node prime-gaming ; node gog` | Deprecated compatibility option; recognized legacy command names are converted to `STORES` |
-| `env_vars` | `[]` | Additional environment variables passed to the add-on |
+| `CONFIG_LOCATION` | `/config/config.env` | Persistent Remaster environment configuration file |
+| `RUN_ONCE` | `true` | Run all selected claimers once, then stop the add-on |
+| `env_vars` | `[]` | Additional environment variables exported through the standard AlexBelgium environment module |
 
 ### Run modes
 
-With `RUN_ONCE: true`, the add-on performs one claiming pass and stops. This is
-the default and preserves the behavior of the former vogler-based add-on.
+With `RUN_ONCE: true`, the add-on performs one claiming pass and stops.
 
-With `RUN_ONCE: false`, the remaster remains running and uses its internal
-scheduler. Set `SCHEDULER_HOURS` in `config.env` to control the interval.
+With `RUN_ONCE: false`, Remaster remains running and uses its internal
+scheduler. `SCHEDULER_HOURS`, `SCHEDULER_FIXED_TIMES`,
+`SCHEDULER_TIMEZONE`, and `RUN_ON_STARTUP` can be configured in `config.env`.
 
 ## Environment configuration
 
 The add-on keeps its configuration in `CONFIG_LOCATION`, which defaults to
-`/config/config.env`. From Home Assistant this is stored in the add-on's
-private `addon_configs` directory and can be edited with a compatible file
-browser add-on.
+`/config/config.env`. Home Assistant stores this in the add-on's private
+configuration directory, which can be edited with a compatible file browser
+add-on.
 
 A template is created on first start. Common examples are:
 
 ```env
-# Preserve the former default selection
+# Native Remaster store selection
 STORES=epic,prime,gog
 
 # Epic Games
 EG_EMAIL=your-email@example.com
 EG_PASSWORD=your-password
 EG_OTPKEY=
+EG_MOBILE=true
+EG_MOBILE_PLATFORMS=android,ios
 
 # Amazon Prime Gaming
 PG_EMAIL=your-amazon-email@example.com
@@ -93,61 +100,58 @@ GOG_PASSWORD=your-password
 STEAM_USERNAME=your-steam-username
 STEAM_PASSWORD=your-password
 
+# Optional AliExpress support
+AE_EMAIL=your-aliexpress-email@example.com
+AE_PASSWORD=your-password
+
 # Optional notifications
 NOTIFY=tgram://bot-token/chat-id
 # DISCORD_WEBHOOK=https://discord.com/api/webhooks/...
 ```
 
-Existing variables such as `EG_EMAIL`, `EG_PASSWORD`, `PG_EMAIL`,
-`PG_PASSWORD`, `PG_OTPKEY`, `GOG_EMAIL`, `GOG_PASSWORD`, `SHOW`, `WIDTH`,
-`HEIGHT`, `TIMEOUT`, `LOGIN_TIMEOUT`, `DRYRUN`, and `NOTIFY` remain compatible.
 See the
 [upstream configuration reference](https://github.com/P-Adamiec/Free-Games-Claimer-Remaster#configuration)
 for all available settings.
 
-## Upgrade from version 1.8
+## Upgrade notes
 
-Version 2.0 changes the application engine from
+Version 2.0 changed the application engine from
 `vogler/free-games-claimer` (Node.js, Playwright, and Firefox) to
 `P-Adamiec/Free-Games-Claimer-Remaster` (Python, nodriver, and Chromium).
-The add-on performs the following migration automatically on first start:
 
-1. The existing `config.env` remains at the same configured location.
-2. Legacy `epic-games.json`, `prime-gaming.json`, and `gog.json` claim history
-   is imported into the remaster SQLite database at `/data/fgc.db`.
-3. Existing database rows are detected and are not duplicated if migration is
-   retried.
-4. A pre-migration database backup is created when an existing `fgc.db` is
-   present.
-5. All old files remain under `/data/data` for rollback or manual recovery.
+Version 2.0.2 keeps the Home Assistant layer intentionally thin and no longer
+ships application-specific converters for the former vogler JSON history or
+Firefox profile. It also no longer migrates configuration from obsolete Home
+Assistant configuration locations.
 
-Browser sessions cannot be converted because the old add-on used a shared
-Firefox profile while the remaster uses separate Chromium profiles per store.
-Credentials remain available through `config.env`, but accounts that require
-interactive authentication may need a one-time login through noVNC after the
-upgrade. The old Firefox profile is retained and is never deleted.
+Existing Remaster data under `/data` remains persistent across add-on updates.
+Users upgrading directly from a pre-2.0 release may need to recreate their
+current `config.env` and perform a one-time browser login through noVNC.
 
-The external noVNC port remains `6080`, although the standalone remaster image
-normally uses port `7080`.
+The former Node.js `CMD_ARGUMENTS` option is no longer used. Configure store
+selection directly with Remaster's native `STORES` setting in `config.env`.
+The external noVNC port changes from `6080` to `7080` in version 2.0.2 so Home
+Assistant and Remaster use the upstream port end-to-end.
 
 ## Upstream update policy
 
-The image is built from an explicit upstream commit in the Dockerfile. This
-keeps amd64 and aarch64 images reproducible and prevents an upstream branch or
-container tag from changing without an add-on review and version bump.
+The add-on is based directly on the official versioned Remaster container
+image instead of rebuilding its Python, browser, VNC, and system runtime.
 
-The repository updater is intentionally paused for this add-on because the
-add-on uses its own `2.x` version series while the replacement upstream uses a
-`1.x` version series. An automatic replacement would risk a Home Assistant
-version regression and would not safely update the pinned commit. A maintainer
-upstream update must therefore update `UPSTREAM_REF`, `upstream_version`, the
-add-on version, and `CHANGELOG.md` together.
+The repository updater tracks the full upstream release tag (for example
+`v1.5`) and updates the base image reference. The add-on version remains
+Home Assistant-safe even while the upstream project is still on a lower
+version series.
+
+This keeps future upstream updates focused on the image tag and add-on
+metadata instead of manually synchronizing Remaster's Dockerfile and runtime
+dependencies.
 
 ## Installation
 
 1. Add this add-on repository to the Home Assistant add-on store.
 2. Install **Free Games Claimer**.
-3. Configure the add-on options as needed.
+3. Configure `config.env` and the add-on options as needed.
 4. Start the add-on and review its log.
 5. Open noVNC if an account needs manual authentication.
 
