@@ -7,6 +7,8 @@
   Home Assistant.
 - Enable the shared AlexBelgium `00-global_var.sh` module for the existing
   `env_vars` option.
+- Remove the deprecated Node.js `CMD_ARGUMENTS` compatibility layer and use
+  Remaster's native `STORES` setting directly.
 - Re-enable the repository updater with full upstream tags and Home
   Assistant-safe add-on versioning.
 - Update the configuration template and documentation for Remaster v1.5.
@@ -55,7 +57,7 @@
 
 - Minor bugs fixed
 
-## 1.6-4 (2024-12-07)
+## 1.6-4 (2024-12-29)
 
 - Major change: switch to the new Home Assistant add-on configuration logic.
   Configuration files were migrated from
