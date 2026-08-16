@@ -2,7 +2,7 @@
 arch:
   - aarch64
   - amd64
-description: "Automatically claims free games from Epic Games Store, Amazon Prime Gaming, GOG, Steam, and optional GamerPower-supported stores"
+description: "Automatically claims free games from Epic Games Store, Amazon Prime Gaming, GOG, Steam, AliExpress, and optional GamerPower-supported stores"
 devices:
   - /dev/dri
   - /dev/dri/card0
@@ -81,10 +81,10 @@ options:
   CONFIG_LOCATION: /config/config.env
 ports:
   5900/tcp: null
-  6080/tcp: 6080
+  7080/tcp: 6080
 ports_description:
   5900/tcp: VNC port
-  6080/tcp: noVNC web interface
+  7080/tcp: noVNC web interface
 schema:
   env_vars:
     - name: match(^[A-Za-z0-9_]+$)
@@ -96,5 +96,5 @@ schema:
 slug: free_games_claimer
 udev: true
 url: https://github.com/alexbelgium/hassio-addons
-version: "2.0.1"
-webui: "[PROTO:ssl]://[HOST]:[PORT:6080]"
+version: "2.0.2"
+webui: "[PROTO:ssl]://[HOST]:[PORT:7080]"

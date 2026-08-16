@@ -36,12 +36,13 @@ set -a
 source "${RUNTIME_CONFIG}"
 set +a
 
-# The Home Assistant port mapping is intentionally kept at 6080 for a seamless
-# upgrade from the previous add-on, even though the new upstream defaults to 7080.
-if [ -n "${NOVNC_PORT:-}" ] && [ "${NOVNC_PORT}" != "6080" ]; then
-    bashio::log.warning "NOVNC_PORT=${NOVNC_PORT} is not supported by the add-on port mapping; using 6080"
+# Remaster v1.5 uses noVNC on 7080. Home Assistant keeps the historical
+# external port 6080 by mapping it to the upstream container port.
+# Existing config.env files from add-on 2.0.x may still contain 6080.
+if [ -n "${NOVNC_PORT:-}" ] && [ "${NOVNC_PORT}" != "7080" ] && [ "${NOVNC_PORT}" != "6080" ]; then
+    bashio::log.warning "NOVNC_PORT=${NOVNC_PORT} is not supported by the add-on port mapping; using 7080"
 fi
-export NOVNC_PORT="6080"
+export NOVNC_PORT="7080"
 export VNC_PORT="5900"
 
 # Absolute paths from the former image pointed to its Firefox profile. The

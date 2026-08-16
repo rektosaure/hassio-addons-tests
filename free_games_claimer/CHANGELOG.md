@@ -1,3 +1,16 @@
+## 2.0.2 (2026-08-16)
+
+- Update Free Games Claimer Remaster to upstream v1.5.
+- Base the add-on on the official upstream amd64/arm64 image instead of
+  rebuilding Remaster's Python, Chromium, TurboVNC, and noVNC runtime.
+- Keep Home Assistant's external noVNC port 6080 while using upstream port 7080
+  inside the container.
+- Enable the shared AlexBelgium `00-global_var.sh` module for the existing
+  `env_vars` option.
+- Re-enable the repository updater with full upstream tags and Home
+  Assistant-safe add-on versioning.
+- Update the configuration template and documentation for Remaster v1.5.
+
 ## 2.0.1 (2026-07-17)
 
 - Aligned the pull-request build context with the production builder by copying

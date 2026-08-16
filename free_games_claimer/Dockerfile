@@ -3,12 +3,11 @@
 #============================#
 #=== Home Assistant Add-on ===#
 
-ARG BUILD_FROM="debian:bookworm-slim"
+ARG BUILD_FROM="ghcr.io/p-adamiec/free-games-claimer-remaster:v1.5"
 FROM ${BUILD_FROM}
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-ARG DEBIAN_FRONTEND="noninteractive"
 ARG BUILD_ARCH
 ARG BUILD_DATE
 ARG BUILD_DESCRIPTION
@@ -17,123 +16,47 @@ ARG BUILD_REF
 ARG BUILD_REPOSITORY
 ARG BUILD_VERSION
 ARG UPSTREAM_REPOSITORY="P-Adamiec/Free-Games-Claimer-Remaster"
-ARG UPSTREAM_REF="cca4992354215cef8807b748575af797606627f4"
+ARG UPSTREAM_VERSION="v1.5"
 
 ENV S6_CMD_WAIT_FOR_SERVICES="1" \
     S6_CMD_WAIT_FOR_SERVICES_MAXTIME="0" \
-    S6_SERVICES_GRACETIME="0" \
-    VNC_PORT="5900" \
-    NOVNC_PORT="6080" \
-    WIDTH="1280" \
-    HEIGHT="720" \
-    DEPTH="24" \
-    SHOW="1" \
-    COMMIT="${UPSTREAM_REF}" \
-    BRANCH="main" \
-    NOW="${BUILD_DATE}"
+    S6_SERVICES_GRACETIME="0"
 
-# Install the dependencies used by Free Games Claimer Remaster. The upstream
-# Dockerfile supports both amd64 (Google Chrome) and arm64 (Chromium), so the
-# add-on keeps its existing multi-architecture support.
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        ca-certificates \
-        curl \
-        dos2unix \
-        gnupg \
-        gzip \
-        jq \
-        python3 \
-        python3-pip \
-        tar \
-        tini \
-    && mkdir -p /etc/apt/keyrings \
-    && curl --proto "=https" --tlsv1.2 -fsSL https://packagecloud.io/dcommander/virtualgl/gpgkey \
-        | gpg --dearmor -o /etc/apt/trusted.gpg.d/VirtualGL.gpg \
-    && curl --proto "=https" --tlsv1.2 -fsSL https://packagecloud.io/dcommander/turbovnc/gpgkey \
-        | gpg --dearmor -o /etc/apt/trusted.gpg.d/TurboVNC.gpg \
-    && curl --proto "=https" --tlsv1.2 -fsSL https://raw.githubusercontent.com/VirtualGL/repo/main/VirtualGL.list \
-        > /etc/apt/sources.list.d/VirtualGL.list \
-    && curl --proto "=https" --tlsv1.2 -fsSL https://raw.githubusercontent.com/TurboVNC/repo/main/TurboVNC.list \
-        > /etc/apt/sources.list.d/TurboVNC.list \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
-        novnc \
-        ratpoison \
-        turbovnc \
-        virtualgl \
-        websockify \
-        libasound2 \
-        libatk-bridge2.0-0 \
-        libatk1.0-0 \
-        libatspi2.0-0 \
-        libcairo2 \
-        libcups2 \
-        libgbm1 \
-        libnspr4 \
-        libnss3 \
-        libpango-1.0-0 \
-        libxcomposite1 \
-        libxdamage1 \
-        libxfixes3 \
-        libxkbcommon0 \
-    && if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
-        curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
-            | gpg --dearmor -o /etc/apt/keyrings/google-chrome.gpg; \
-        echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] https://dl.google.com/linux/chrome/deb/ stable main" \
-            > /etc/apt/sources.list.d/google-chrome.list; \
-        apt-get update; \
-        apt-get install -y --no-install-recommends google-chrome-stable; \
-    else \
-        apt-get install -y --no-install-recommends chromium; \
-    fi \
-    && ln -sf /usr/share/novnc/vnc_auto.html /usr/share/novnc/index.html \
-    && ln -sf /usr/bin/python3 /usr/bin/python \
-    && apt-get purge -y gnupg \
-    && apt-get autoremove -y \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /var/cache/* /var/tmp/* /tmp/* /usr/share/doc/*
-
-# Install a deterministic snapshot of the replacement upstream. Updating the
-# upstream reference is intentionally explicit so image contents cannot change
-# without an add-on version bump.
-WORKDIR /fgc
-RUN curl --proto "=https" --tlsv1.2 -fsSL \
-        "https://github.com/${UPSTREAM_REPOSITORY}/archive/${UPSTREAM_REF}.tar.gz" \
-        -o /tmp/free-games-claimer-remaster.tar.gz \
-    && tar -xzf /tmp/free-games-claimer-remaster.tar.gz --strip-components=1 -C /fgc \
-    && python3 -m pip install --no-cache-dir --break-system-packages -r requirements.txt \
-    && dos2unix ./*.sh \
-    && chmod +x ./*.sh \
-    && cp docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh \
-    && chmod 0755 /usr/local/bin/docker-entrypoint.sh \
-    && rm -f /tmp/free-games-claimer-remaster.tar.gz \
-    && rm -rf /fgc/data \
+# Keep Remaster's persistent data in Home Assistant's /data volume.
+RUN rm -rf /fgc/data \
     && ln -s /data /fgc/data
 
-# Add Home Assistant integration files and shared helper modules.
+# Add Home Assistant integration files.
 COPY rootfs/ /
 RUN find /etc/cont-init.d /usr/local/bin -type f -name "*.sh" -exec chmod 0755 {} + \
     && chmod 0755 /usr/local/bin/migrate_vogler_data.py
 
-ARG MODULES="00-banner.sh 01-custom_script.sh"
-COPY ha_automodules.sh /ha_automodules.sh
-RUN chmod 0755 /ha_automodules.sh \
+# Use the shared AlexBelgium modules. 00-global_var.sh provides the standard
+# env_vars option declared by this add-on.
+ARG TEMPLATE_BASE_URL="https://raw.githubusercontent.com/alexbelgium/hassio-addons/master/.templates"
+ARG MODULES="00-banner.sh 00-global_var.sh 01-custom_script.sh"
+RUN curl -fsSL --retry 3 --retry-delay 2 \
+        -o /ha_automodules.sh "${TEMPLATE_BASE_URL}/ha_automodules.sh" \
+    && chmod 0755 /ha_automodules.sh \
     && /ha_automodules.sh "${MODULES}" \
     && rm /ha_automodules.sh
 
-ENV PACKAGES=""
-COPY ha_autoapps.sh /ha_autoapps.sh
-RUN chmod 0755 /ha_autoapps.sh \
+# jq is required by the shared 00-global_var.sh module.
+ENV PACKAGES="jq"
+RUN curl -fsSL --retry 3 --retry-delay 2 \
+        -o /ha_autoapps.sh "${TEMPLATE_BASE_URL}/ha_autoapps.sh" \
+    && chmod 0755 /ha_autoapps.sh \
     && /ha_autoapps.sh "${PACKAGES}" \
     && rm /ha_autoapps.sh
 
-ENV S6_STAGE2_HOOK="/ha_entrypoint.sh"
-COPY ha_entrypoint.sh /ha_entrypoint.sh
-COPY bashio-standalone.sh /usr/local/lib/bashio-standalone.sh
-RUN chmod 0755 /ha_entrypoint.sh /usr/local/lib/bashio-standalone.sh
+# Add the standard AlexBelgium entrypoint and standalone bashio compatibility.
+RUN curl -fsSL --retry 3 --retry-delay 2 \
+        -o /ha_entrypoint.sh "${TEMPLATE_BASE_URL}/ha_entrypoint.sh" \
+    && curl -fsSL --retry 3 --retry-delay 2 \
+        -o /usr/local/lib/bashio-standalone.sh "${TEMPLATE_BASE_URL}/bashio-standalone.sh" \
+    && chmod 0755 /ha_entrypoint.sh /usr/local/lib/bashio-standalone.sh
 
-EXPOSE 5900 6080
+EXPOSE 5900 7080
 ENTRYPOINT ["/usr/bin/env"]
 CMD ["/ha_entrypoint.sh"]
 
@@ -155,4 +78,4 @@ LABEL \
     org.opencontainers.image.created="${BUILD_DATE}" \
     org.opencontainers.image.revision="${BUILD_REF}" \
     org.opencontainers.image.version="${BUILD_VERSION}" \
-    io.hass.upstream="https://github.com/${UPSTREAM_REPOSITORY}/tree/${UPSTREAM_REF}"
+    io.hass.upstream="https://github.com/${UPSTREAM_REPOSITORY}/releases/tag/${UPSTREAM_VERSION}"
