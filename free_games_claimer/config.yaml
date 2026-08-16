@@ -74,7 +74,6 @@ map:
 name: Free Games Claimer
 options:
   env_vars: []
-  CMD_ARGUMENTS: node epic-games ; node prime-gaming ; node gog
   STORES: ""
   RUN_ONCE: true
   CONFIG_LOCATION: /config/config.env
@@ -88,7 +87,6 @@ schema:
   env_vars:
     - name: match(^[A-Za-z0-9_]+$)
       value: str?
-  CMD_ARGUMENTS: str?
   STORES: str?
   RUN_ONCE: bool
   CONFIG_LOCATION: str
