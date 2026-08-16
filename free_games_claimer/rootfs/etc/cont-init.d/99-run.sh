@@ -11,12 +11,6 @@ RUNTIME_CONFIG="/data/config.env"
 
 mkdir -p "${CONFIG_DIR}" /data
 
-# Recover from an old add-on bug that could create config.env as a directory.
-if [ -d "${CONFIG_FILE}" ]; then
-    bashio::log.warning "Found a directory at ${CONFIG_FILE}; replacing it with a configuration file"
-    rm -rf "${CONFIG_FILE}"
-fi
-
 if [ ! -f "${CONFIG_FILE}" ]; then
     install -m 0600 /templates/config.env "${CONFIG_FILE}"
     bashio::log.warning \
