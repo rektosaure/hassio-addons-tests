@@ -39,12 +39,11 @@ remains Epic Games, Prime Gaming, and GOG.
 
 ## Web interface
 
-Home Assistant keeps the historical external noVNC port `6080`. Remaster uses
-port `7080` inside the container, and Supervisor maps `6080` to that upstream
-port.
+The add-on uses Remaster's upstream noVNC port `7080` both inside the container
+and on Home Assistant.
 
 ```text
-http://homeassistant:6080
+http://homeassistant:7080
 ```
 
 The interface can be used for initial sign-in, CAPTCHA handling, or other
@@ -138,8 +137,8 @@ Accounts that require interactive authentication may need a one-time login
 through noVNC after the upgrade.
 
 Existing 2.0.x `config.env` files can still contain `NOVNC_PORT=6080`. The
-add-on handles that legacy value at runtime while Remaster itself remains on
-its upstream port `7080`.
+add-on normalizes that legacy value to Remaster's upstream port `7080` at
+runtime.
 
 ## Upstream update policy
 
